@@ -21,7 +21,7 @@ class ViewController: UIViewController {
     
     @IBOutlet weak var sceneView: SCNView!
     
-    func createSphereNode(material material: AnyObject?) -> SCNNode {
+    func createSphereNode(material: AnyObject?) -> SCNNode {
         let sphere = SCNSphere(radius: 20.0)
         sphere.firstMaterial!.isDoubleSided = true
         sphere.firstMaterial!.diffuse.contents = material
@@ -49,7 +49,7 @@ class ViewController: UIViewController {
         motionManager.startDeviceMotionUpdates(to: OperationQueue.main) { [weak self] (data: CMDeviceMotion?,error: Error?) in
             guard let data = data else { return }
             let attitude: CMAttitude = data.attitude
-            self?.cameraNode.eulerAngles = SCNVector3Make(Float(attitude.roll + M_PI/2.0), -Float(attitude.yaw), -Float(attitude.pitch))
+            self?.cameraNode.eulerAngles = SCNVector3Make(Float(attitude.roll + Double.pi/2.0), -Float(attitude.yaw), -Float(attitude.pitch))
         };
     }
     
