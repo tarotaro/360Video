@@ -23,7 +23,7 @@ class ViewController: UIViewController {
     
     func createSphereNode(material material: AnyObject?) -> SCNNode {
         let sphere = SCNSphere(radius: 20.0)
-        sphere.firstMaterial!.doubleSided = true
+        sphere.firstMaterial!.isDoubleSided = true
         sphere.firstMaterial!.diffuse.contents = material
         let sphereNode = SCNNode(geometry: sphere)
         sphereNode.position = SCNVector3Make(0,0,0)
@@ -45,14 +45,12 @@ class ViewController: UIViewController {
     
     func startCameraTracking() {
         motionManager.deviceMotionUpdateInterval = 1.0 / 60.0
-        motionManager.startDeviceMotionUpdatesToQueue(NSOperationQueue.mainQueue()) {
-            [weak self](data: CMDeviceMotion?, error: NSError?) in
-            
+        //motionManager.startDeviceMotionUpdatesToQueue(NSOperationQueue.mainQueue()) {
+        motionManager.startDeviceMotionUpdates(to: OperationQueue.main) { [weak self] (data: CMDeviceMotion?,error: Error?) in
             guard let data = data else { return }
-            
             let attitude: CMAttitude = data.attitude
             self?.cameraNode.eulerAngles = SCNVector3Make(Float(attitude.roll + M_PI/2.0), -Float(attitude.yaw), -Float(attitude.pitch))
-        }
+        };
     }
     
     override func viewDidLoad() {
@@ -63,23 +61,23 @@ class ViewController: UIViewController {
             fatalError("Failed to create URL")
         }
         
-        let player = AVPlayer(URL: url)
-        let videoNode = SKVideoNode(AVPlayer: player)
-        let size = CGSizeMake(1024,512)
+        let player = AVPlayer(url: url as URL)
+        let videoNode = SKVideoNode(avPlayer: player)
+        let size = CGSize(width: 1024,height: 512)
         videoNode.size = size
-        videoNode.position = CGPointMake(size.width/2.0,size.height/2.0)
+        videoNode.position = CGPoint(x: size.width/2.0,y: size.height/2.0)
         let spriteScene = SKScene(size: size)
         spriteScene.addChild(videoNode)
         
         let sphereNode = createSphereNode(material:spriteScene)
         configureScene(node: sphereNode)
-        guard motionManager.deviceMotionAvailable else {
+        guard motionManager.isDeviceMotionAvailable else {
             fatalError("Device motion is not available")
         }
         startCameraTracking()
     }
     
-    override func viewDidAppear(animated: Bool) {
+    override func viewDidAppear(_ animated: Bool) {
         sceneView.play(self)
     }
     
