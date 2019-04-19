@@ -17,6 +17,7 @@ class ViewController: UIViewController {
     
     let motionManager = CMMotionManager()
     let cameraNode = SCNNode()
+    var videoNode :SKVideoNode?
     
     
     @IBOutlet weak var sceneView: SCNView!
@@ -35,7 +36,7 @@ class ViewController: UIViewController {
         let scene = SCNScene()
         sceneView.scene = scene
         sceneView.showsStatistics = true
-        sceneView.allowsCameraControl = true
+        sceneView.allowsCameraControl = false
         // Camera, ...
         cameraNode.camera = SCNCamera()
         cameraNode.position = SCNVector3Make(0, 0, 0)
@@ -45,7 +46,6 @@ class ViewController: UIViewController {
     
     func startCameraTracking() {
         motionManager.deviceMotionUpdateInterval = 1.0 / 60.0
-        //motionManager.startDeviceMotionUpdatesToQueue(NSOperationQueue.mainQueue()) {
         motionManager.startDeviceMotionUpdates(to: OperationQueue.main) { [weak self] (data: CMDeviceMotion?,error: Error?) in
             guard let data = data else { return }
             let attitude: CMAttitude = data.attitude
@@ -55,33 +55,32 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        //let urlString = "http://all360media.com/wp-content/uploads/pano/laphil/media/video-ios.mp4"
-        let urlString = "http://kolor.com/360-videos-files/kolor-balloon-icare-full-hd.mp4"
+        let urlString = "https://15bcd044c531aa99.mediapackage.ap-northeast-1.amazonaws.com/out/v1/2031b108d37048c5ac9233a62c22109f/index.m3u8";
         guard let url = NSURL(string: urlString) else {
             fatalError("Failed to create URL")
         }
         
         let player = AVPlayer(url: url as URL)
-        let videoNode = SKVideoNode(avPlayer: player)
-        let size = CGSize(width: 1024,height: 512)
-        videoNode.size = size
-        videoNode.position = CGPoint(x: size.width/2.0,y: size.height/2.0)
-        let spriteScene = SKScene(size: size)
-        spriteScene.addChild(videoNode)
-        
-        let sphereNode = createSphereNode(material:spriteScene)
-        configureScene(node: sphereNode)
+        videoNode = SKVideoNode(avPlayer: player)
+        if let videoNode = videoNode {
+            let size = CGSize(width: 1280,height: 720)
+            videoNode.size = size
+            videoNode.position = CGPoint(x: size.width/2.0,y: size.height/2.0)
+            let spriteScene = SKScene(size: size)
+            spriteScene.addChild(videoNode)
+            let sphereNode = createSphereNode(material:spriteScene)
+            configureScene(node: sphereNode)
+        }
         guard motionManager.isDeviceMotionAvailable else {
             fatalError("Device motion is not available")
         }
         startCameraTracking()
+        videoNode?.play()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         sceneView.play(self)
     }
-    
-    
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
